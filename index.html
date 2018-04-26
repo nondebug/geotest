@@ -1,20 +1,21 @@
     <!doctype html>
     <meta charset="utf-8">
     <body>
-      <pre id="loc"></pre>
-      <pre id="err"></pre>
+      <div id="mylog"></div>
       <script>
         var watchId = navigator.geolocation.watchPosition(function (pos) {
-          console.log(pos);
-          document.getElementById('loc').innerText = JSON.stringify({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            timestamp: pos.timestamp
-          }, null, 2);
+          logappend("pos: " + pos.coords.latitude + " " + pos.coords.longitude + " " + pos.timestamp);
         }, function (err) {
-          console.log(err.message);
-          document.getElementById('err').innerText = err.message;
+          logappend("err: " + err.code + " " + err.message)
         });
-        console.log('watchId', watchId);
+        logappend("watchId: " + watchId);
+          
+        function logappend(msg) {
+          console.log(msg);
+          var mylog = document.getElementById("mylog");
+          var line = document.createElement("div");
+          line.textContent = msg;
+          mylog.appendChild(line);
+        }
       </script>
     </body>

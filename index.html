@@ -1,14 +1,47 @@
     <!doctype html>
     <meta charset="utf-8">
     <body>
+      <button onclick="startwatch(defaultParams)">Start watchPosition</button>
+      <button onclick="stopwatch(defaultParams)">Stop watchPosition</button><br>
+      <button onclick="getposition(defaultParams)">Call getCurrentPosition</button> with maxAge:0, timeout:Infinity (fresh estimate only)<br>
+      <button onclick="getposition(recentEstimate)">Call getCurrentPosition</button> with maxAge:10sec, timeout:2sec (best effort)<br>
+      <button onclick="getposition(cacheOnly)">Call getCurrentPosition</button> with maxAge:Infinity, timeout:0 (cached estimate only)<br>
       <div id="mylog"></div>
       <script>
-        var watchId = navigator.geolocation.watchPosition(function (pos) {
-          logappend("pos: " + pos.coords.latitude + " " + pos.coords.longitude + " " + pos.timestamp);
-        }, function (err) {
-          logappend("err: " + err.code + " " + err.message)
-        });
-        logappend("watchId: " + watchId);
+        var defaultParams = { maximumAge: 0, timeout: 0xffffffff };
+        var recentEstimate = { maximumAge: 10000, timeout: 2000 };
+        var cacheOnly = { maximumAge: 0xffffffff, timeout: 0 };
+        var watchId = -1;
+          
+        function getposition(params) {
+            navigator.geolocation.getCurrentPosition(function (pos) {
+              logappend("pos: " + pos.coords.latitude + " " + pos.coords.longitude + " " + pos.timestamp);
+            }, function (err) {
+              logappend("err: " + err.code + " " + err.message)
+            }, params);
+            logappend("Called getCurrentPosition with {maximumAge: " + params.maximumAge + ", timeout: " + params.timeout + "}");
+        }
+
+        function startwatch(params) {
+            if (watchId > 0)
+              stopwatch();
+            watchId = navigator.geolocation.watchPosition(function (pos) {
+              logappend("pos: " + pos.coords.latitude + " " + pos.coords.longitude + " " + pos.timestamp);
+            }, function (err) {
+              logappend("err: " + err.code + " " + err.message)
+            }, params);
+            logappend("Called watchPosition with {maximumAge: " + params.maximumAge + ", timeout: " + params.timeout + "}, got ID " + watchId);
+        }
+        
+        function stopwatch() {
+            if (watchId > 0) {
+              navigator.geolocation.clearWatch(watchId);
+              logappend("Called clearWatch with ID " + watchId);
+            } else {
+              logappend("No active watchPosition");
+            }
+            watchId = -1;
+        }
           
         function logappend(msg) {
           console.log(msg);
